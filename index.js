@@ -25,6 +25,7 @@ if (log) {
 }
 
 app.use(express.static('./public'))
+app.use(express.json())
 
 if(port < 1 || port > 65535) { port = 5000 }
 
@@ -165,7 +166,7 @@ app.get('/app', (req, res)  => {
 })
 
 app.get('/app/flips/:number', (req, res) => {
-    let flips_raw = coinFlips(req.params.number)
+    let flips_raw = coinFlips(req.body.number)
     let flips_data = countFlips(flips_raw)
     res.type('text/json')
     res.status(200).json({"raw": flips_raw, "summary": flips_data})
@@ -176,8 +177,8 @@ app.get('/app/flip', (req, res) => {
     res.status(200).json({"flip": flip()})
 })
 
-app.get('/app/flip/call/:guess', (req, res) => {
-    const guessedFlip = guessFlip(req.params.guess)
+app.get('/app/flip/call/:guess(heads|tails)/', (req, res) => {
+    const guessedFlip = guessFlip(req.body.guess)
     res.type('text/json')
     res.status(200).send(guessedFlip)
 })
