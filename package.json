@@ -4,7 +4,7 @@
   "description": "Coinserver API that also serves a single page HTML/CSS/JS browser-based interface.",
   "main": "index.js",
   "scripts": {
-    "test": "npx nodemon index.js --port=5000 --debug",
+    "test": "npx nodemon index.js --port=5001 --debug",
     "start": "node index.js"
   },
   "repository": {
