@@ -5,6 +5,7 @@ const database = require('better-sqlite3')
 const morgan = require('morgan')
 const fs = require('fs')
 const logdb = new database('log.db')
+const cors = require('cors')
 
 const port = args.port || 5000
 const debug = args.debug || false
@@ -21,11 +22,12 @@ if(help != null) {
 
 if (log) {
   const accesslog = fs.createWriteStream('access.log', {flags: 'a'})
-  app.use(morgan('FORMAT', {stream: accesslog}))
+  app.use(morgan('combined', {stream: accesslog}))
 }
 
 app.use(express.static('./public'))
 app.use(express.json())
+app.use(cors())
 
 if(port < 1 || port > 65535) { port = 5000 }
 
@@ -52,113 +54,11 @@ if(row == undefined) {
   console.log('Log database exists.')
 }
 
-module.exports = logdb
-
-function coinFlip() {
-    let flip_value = 2;
-    flip_value = Math.floor(Math.random(2) * 2)
-    if(flip_value == 0) 
-    {
-      return 'heads'
-    } else {
-      return 'tails'
-    }
-  }
-  
-  /** Multiple coin flips
-   * @param {number} flips 
-   * @returns {string[]} results
-   */
-  
-function coinFlips(flips) {
-    const flip_arr = []
-    let flip_value = 2;
-    for(let i=0; i < flips; i++) {
-      flip_value = Math.floor(Math.random(2) * 2)
-      if(flip_value == 0) 
-      {
-        flip_arr[i] = 'heads'
-      } else {
-        flip_arr[i] = 'tails'
-      }
-    }
-    return flip_arr
-  }
-  
-  /** Count multiple flips
-   * @param {string[]} array 
-   * @returns {{ heads: number, tails: number }}
-   */
-  
-function countFlips(array) {
-    let tails = 0
-    let heads = 0
-    for(let i=0; i<array.length; i ++) {
-      if (array[i] == 'heads') {
-        heads += 1
-      } else {
-        tails += 1
-      }
-    }
-    if ( tails == 0) {
-      return {'heads': heads}
-    } else if (heads == 0) {
-      return {'tails': tails}
-    }
-    return {'tails': tails, 'heads': heads}
-  }
-  
-  /** Flip a coin!
-   * @param {string} call 
-   * @returns {object} 
-   */
-  
-function flipACoin(call) {
-    let flip_value = Math.floor(Math.random(2) * 2)
-    let flip = ''
-    if(flip_value == 0) 
-    {
-      flip = 'heads'
-    } else {
-      flip = 'tails'
-    }
-    let result = ''
-    if(flip == call) {
-      result = 'win'
-    } else {
-      result = 'lose'
-    }
-    return {'call': call, 'flip': flip, 'result': result}
-  }
-  
-function guessFlip(call) {
-    
-    if (call != 'heads' && call != 'tails') {
-        return 'Error: incorrect input. \nUsage: node guess-flip --call=[heads|tails]'
-    }
-  
-    return flipACoin(call)
-  }
-  
-function flips(number) {
-  
-    if (number == null) {
-        number = 1
-    }
-    let flips = coinFlips(number)
-    let flip_data = countFlips(flips)
-    return [flips, '\n', flip_data]
-  }
-  
-function flip() {
-    return coinFlip()
-}
-
 const server = app.listen(port, () => {
     console.log(`App listening on port ${port}`)
 });
 
-app.get('/app', (req, res)  => {
+app.get('/app/', (req, res)  => {
   res.statusCode = 200
   res.statusMessage = 'OK'
   res.writeHead( res.statusCode, {'Content-Type' : 'text/plain'})
@@ -172,18 +72,24 @@ app.get('/app/flips/:number', (req, res) => {
     res.status(200).json({"raw": flips_raw, "summary": flips_data})
 })
 
-app.get('/app/flip', (req, res) => {
+app.get('/app/flip/', (req, res) => {
     res.type('text/json')
-    res.status(200).json({"flip": flip()})
+    res.status(200).json({"flip": coinFlip()})
 })
 
-app.get('/app/flip/call/:guess(heads|tails)/', (req, res) => {
-    const guessedFlip = guessFlip(req.body.guess)
+app.post('/app/flip/coins/', (req, res, next) => {
+  let flips = coinFlips(req.body.number)
+  let count = countFlips(flips)
+  res.status(200).json({"raw" : flips, "summary" : count})
+})
+
+app.get('/app/flip/call/:guess(heads|tails)/', (req, res, next) => {
+    let guessedFlip = guessFlip(req.params.guess)
     res.type('text/json')
     res.status(200).send(guessedFlip)
 })
 
-app.get('/app/log', (req, res) => {
+app.get('/app/log/', (req, res) => {
   res.status(200).send('ok')
 })
 
@@ -227,3 +133,85 @@ app.use(function(req, res) {
   console.log(log)
   res.status(404).send('404 page not found')
 })
+
+function coinFlip() {
+  let flip_value = Math.floor(Math.random() * 2)
+  if(flip_value == 1) 
+  {
+    return 'heads'
+  } else {
+    return 'tails'
+  }
+}
+
+/** Multiple coin flips
+ * @param {number} flips 
+ * @returns {string[]} results
+ */
+
+function coinFlips(flips) {
+  let flip_arr = []
+  for(let i=0; i < flips; i++) {
+    flip_arr.push(coinFlip())
+  }
+  return flip_arr
+}
+
+/** Count multiple flips
+ * @param {string[]} array 
+ * @returns {{ heads: number, tails: number }}
+ */
+
+function countFlips(array) {
+  let num_tails = 0
+  let num_heads = 0
+  for(let i=0; i<array.length; i++) {
+    if (array[i] == 'heads') {
+      num_heads += 1
+    } else {
+      num_tails += 1
+    }
+  }
+  if ( num_tails == 0) {
+    return{heads: num_heads}
+  } else if (num_heads == 0) {
+    return{tails: num_tails}
+  }
+  return {heads: num_heads, tails: num_tails}
+}
+
+/** Flip a coin!
+ * @param {string} call 
+ * @returns {object} 
+ */
+
+function flipACoin(call) {
+  let flip_value = Math.floor(Math.random() * 2)
+  let flip = ''
+  if(flip_value == 0) 
+  {
+    flip = 'heads'
+  } else {
+    flip = 'tails'
+  }
+  let result = ''
+  if(flip == call) {
+    result = 'win'
+  } else {
+    result = 'lose'
+  }
+  return {'call': call, 'flip': flip, 'result': result}
+}
+
+function guessFlip(call) {
+  console.log(call)
+  if (call != 'heads' && call != 'tails') {
+      return 'Error: incorrect input. \nUsage: node guess-flip --call=[heads|tails]'
+  }
+
+  return flipACoin(call)
+}
+
+function flip() {
+  return coinFlip()
+}

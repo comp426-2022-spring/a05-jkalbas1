@@ -29,64 +29,63 @@
     <nav>
       <button id="homenav">Home</button>
       <button id="singlenav">Flip one coin</button>
-      <button id="multinav">Flip multiple coins</button>
+      <button id="multinav" >Flip multiple coins</button>
       <button id="guessnav">Guess the result</button>
     </nav>
+
     <div id="home">
-      
+      <h1>Home Page</h1>
+      <ul>
+        <li>Flip one coin: Flip a single coin and displays the result.</li>
+        <li>Flip multiple coins: Flip a inputted number of coins and displays the results.</li>
+        <li>Guess the result: Guess either heads or tails and see the result of the coin flip.</li>
+      </ul>
     </div>    
+
     <div id="single" class="hidden">
+      <h1>Flip a Coin</h1>
+      <button onclick="flipCoin()">Flip a coin</button>
+
+      <p><b>Result</b><br><span id="single-result"></span></p>
+      <img src="./assets/img/coin.png" id="smallcoin">
+    </div>
 
     <div id="multi" class="hidden">
-      <form id="coins">
-        <label for="number">
-          <strong>How many coins?</strong>
-        </label>
-        <input type="number" name="number" id="number">
-        <input type="submit" value="Flip!">
-    </form>
-    <h2>Results</h2>
+      <h1>Flip Multiple Coins</h1>
+
+      <!-- Form that for entering the amount of flips -->
+
+      <form id = "coins">
+        <input type="number" id="number" placeholder="Enter Amount of Flips" name="number" min="0">
+        <input type="submit" value="Flip">
+      </form>
+ 
+      <p><b>Summary:</b></p>
+
+      <!-- Text that shows a summary of the result-->
       <p id="heads"></p>
       <p id="tails"></p>
+
+      <p><b>Result:</b></p>
+      <!-- Images that represent result-->
+      <div id = "multi-result">
+      </div>
+
+
     </div>
-    <script>
-      const coins = document.getElementById("coins")
-      coins.addEventListener("submit", flipcoins)
-      async function flipcoins(event) {
-        event.preventDefault();
-        const endpoint = "app/flip/coins/"
-        const url = document.baseURI+endpoint
-        const formEvent = event.currentTarget
-        try {
-          const formData = new FormData(formEvent)
-          const flips = await sendFlips({url, formData})
-          console.log(flips)
-          document.getElementById("heads").innerHTML = "Heads: " + flips.summary.heads;
-          document.getElementById("tails").innerHTML = "Tails: " + flips.summary.tails;
-        } catch (error) {
-          console.error(error)
-        }
-      }
-      async function sendFlips({url, formData}) {
-        const plainFormData = Object.fromEntries(formData.entries())
-        const formDataJson = JSON.stringify(plainFormData)
-        console.log(formDataJson)
-        const options = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json"
-          },
-          bost: formDataJson
-        }
-        const response = await fetch(url, options)
-        return response.json()
-      }
-    </script>
-    </div>
+
     <div id="guess" class="hidden">
-      
+      <h1>Guess Coin Flip</h1>
+      <button id="callheads" onclick="guessHeads()">Guess Heads</button>
+      <button id="calltails" onclick="guessTails()">Guess Tails</button>
+
+      <p><b>Calls:</b><br><span id="call-result"></span></p>
+      <img src="./assets/img/coin.png" id="calls-coin">
+      <p><b>Flip:</b><br><span id="flips-result"></span></p>
+      <img src="./assets/img/coin.png" id="flip-coin">
+      <p><b>Result</b><br><span id="guess-result"></span></p>
     </div>
+
 	<script src="main.js"></script>
   </body>
 </html>

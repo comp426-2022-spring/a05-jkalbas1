@@ -10,6 +10,14 @@ img.bigcoin {
   width: 50px;
 }
 
-img.smallcoin {
-  width: 50px;
+#smallcoin {
+  width: 100px;
+}
+
+#calls-coin {
+  width: 100px;
+}
+
+#flip-coin {
+  width: 100px;
 }
